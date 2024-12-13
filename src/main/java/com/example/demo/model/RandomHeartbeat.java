@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.model;
 
 import com.example.demo.HeartbeatSensor;
 import org.springframework.stereotype.Service;
