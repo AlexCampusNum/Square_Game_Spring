@@ -23,7 +23,7 @@ public class GameServiceImpl implements GameService {
     @Override
     public Game createGame(String typeGame, int playerCount, int boardSize) {
         Game game = gameCatalog.getGameFactory(typeGame).createGame(playerCount, boardSize);
-        UUID gameId = gameCatalog.getGameFactory(typeGame).createGame(playerCount, boardSize).getId();
+        UUID gameId = game.getId();
         String id = gameId.toString();
         dataGames.put(id, game);
         return game;
