@@ -1,6 +1,5 @@
-package com.example.demo.model;
+package com.example.demo.service;
 
-import com.example.demo.GameCatalog;
 import fr.le_campus_numerique.square_games.engine.GameFactory;
 import fr.le_campus_numerique.square_games.engine.connectfour.ConnectFourGameFactory;
 import fr.le_campus_numerique.square_games.engine.taquin.TaquinGameFactory;
