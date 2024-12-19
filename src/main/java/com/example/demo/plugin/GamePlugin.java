@@ -15,4 +15,5 @@ public interface GamePlugin {
     int getDefaultBoardSize();
 
     GameFactory getGameFactory();
+
 }

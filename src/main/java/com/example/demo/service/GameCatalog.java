@@ -6,6 +6,4 @@ import java.util.Collection;
 
 public interface GameCatalog {
     public Collection<String> getGameIdentifiers();
-
-    public GameFactory getGameFactory(String typeGame);
 }

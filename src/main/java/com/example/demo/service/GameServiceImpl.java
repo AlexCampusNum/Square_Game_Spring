@@ -17,9 +17,6 @@ public class GameServiceImpl implements GameService {
     Map<String, Game> dataGames = new HashMap<>();
 
     @Autowired
-    GameCatalog gameCatalog;
-
-    @Autowired
     List<GamePlugin> plugins;
 
     @Override
