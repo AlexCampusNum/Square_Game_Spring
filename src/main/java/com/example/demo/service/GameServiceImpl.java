@@ -9,15 +9,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.springframework.context.i18n.LocaleContextHolder.getLocale;
-
 @Service
 public class GameServiceImpl implements GameService {
 
-    Map<String, Game> dataGames = new HashMap<>();
-
     @Autowired
     List<GamePlugin> plugins;
+
+    @Autowired
+    GameDao gameDao;
 
     @Override
     public Game createGame(String typeGame, int playerCount, int boardSize) throws IllegalArgumentException {
@@ -33,18 +32,19 @@ public class GameServiceImpl implements GameService {
         Game game = plugin.getGameFactory().createGame(plugin.getDefaultPlayerCount(), plugin.getDefaultBoardSize());
         UUID gameId = game.getId();
         String id = gameId.toString();
-        dataGames.put(id, game);
+//        dataGames.put(id, game);
+        gameDao.getDataGames().put(id, game);
         return game;
     }
 
     @Override
     public Game getGame(String gameId) {
-        return dataGames.get(gameId);
+        return gameDao.findById(gameId).orElse(null);
     }
 
     @Override
     public void deleteGame(String gameId){
-        dataGames.remove(gameId);
+        gameDao.delete(gameId);
     }
 
     @Override
