@@ -6,7 +6,6 @@ import com.example.demo.service.GameCreationParams;
 import fr.le_campus_numerique.square_games.engine.CellPosition;
 import fr.le_campus_numerique.square_games.engine.Game;
 import fr.le_campus_numerique.square_games.engine.InvalidPositionException;
-import fr.le_campus_numerique.square_games.engine.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +23,7 @@ public class GameController {
 
     //Créer une partie
     @PostMapping("/games")
-    public Game createGame(@RequestBody GameCreationParams params) {
+    public Game createGame(@RequestBody GameCreationParams params) throws IllegalArgumentException {
         return gameService.createGame(params.typeGame(), params.playerCount(), params.boardSize());
     }
 

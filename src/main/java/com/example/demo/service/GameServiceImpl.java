@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.plugin.GamePlugin;
 import fr.le_campus_numerique.square_games.engine.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,8 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.springframework.context.i18n.LocaleContextHolder.getLocale;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -16,9 +19,21 @@ public class GameServiceImpl implements GameService {
     @Autowired
     GameCatalog gameCatalog;
 
+    @Autowired
+    List<GamePlugin> plugins;
+
     @Override
-    public Game createGame(String typeGame, int playerCount, int boardSize) {
-        Game game = gameCatalog.getGameFactory(typeGame).createGame(playerCount, boardSize);
+    public Game createGame(String typeGame, int playerCount, int boardSize) throws IllegalArgumentException {
+        GamePlugin plugin = plugins.stream()
+                .filter(p -> p.getDefaultTypeGame().equals(typeGame))
+                .findFirst()
+                .orElse(null);
+
+        if (plugin == null) {
+            throw new IllegalArgumentException("No plugin found for the game type: " + typeGame);
+        }
+
+        Game game = plugin.getGameFactory().createGame(plugin.getDefaultPlayerCount(), plugin.getDefaultBoardSize());
         UUID gameId = game.getId();
         String id = gameId.toString();
         dataGames.put(id, game);
