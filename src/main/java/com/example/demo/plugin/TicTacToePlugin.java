@@ -16,15 +16,15 @@ public class TicTacToePlugin implements GamePlugin {
     private final GameFactory ticTacToeGameFactory = new TicTacToeGameFactory();
 
     @Getter
-    @Value("${game.taquin.default-type-game}")
+    @Value("${game.tictactoe.default-type-game}")
     private String defaultTypeGame;
 
     @Getter
-    @Value("${game.taquin.default-player-count}")
+    @Value("${game.tictactoe.default-player-count}")
     private int defaultPlayerCount;
 
     @Getter
-    @Value("${game.taquin.default-board-size}")
+    @Value("${game.tictactoe.default-board-size}")
     private int defaultBoardSize;
 
     @Autowired
