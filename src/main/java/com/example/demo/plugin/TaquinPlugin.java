@@ -30,8 +30,8 @@ public class TaquinPlugin implements GamePlugin {
     @Autowired
     private MessageSource messageSource;
 
-    public String getGameName(Locale locale) {
-        return messageSource.getMessage("game.taquin.name", null, locale);
+    public String getGameName(Locale locale, String defaultTypeGame) {
+        return messageSource.getMessage("game." + defaultTypeGame + ".name", null, locale);
     }
 
     public GameFactory getGameFactory() {

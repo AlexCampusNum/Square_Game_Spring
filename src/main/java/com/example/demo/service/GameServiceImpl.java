@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.springframework.context.i18n.LocaleContextHolder.getLocale;
+
 @Service
 public class GameServiceImpl implements GameService {
 
@@ -38,6 +40,14 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
+    public Stream<Game> getGameIdentifiers(){
+        return plugins.stream()
+                .map(plugin -> plugin.getGameName(getLocale(), plugin.getDefaultTypeGame()))
+                .map(gameDao.getDataGames()::get)
+                .filter(Objects::nonNull);
+    }
+
+    @Override
     public Game getGame(String gameId) {
         return gameDao.findById(gameId).orElse(null);
     }
@@ -50,7 +60,7 @@ public class GameServiceImpl implements GameService {
     @Override
     public List<Game> displayGame(){
         List<Game> games = new ArrayList<>();
-        games.addAll(dataGames.values());
+        games.addAll(gameDao.getDataGames().values());
         return games;
     }
 
@@ -63,20 +73,31 @@ public class GameServiceImpl implements GameService {
                 .orElse(null);
     }
 
-    public void move(String gameId, String tokenName, int x, int y) throws InvalidPositionException {
-        Token token = getTokenWithName(dataGames.get(gameId), tokenName);
+    private static List<Token> getAllTokens(Game game) {
+        return Stream.of(game.getRemainingTokens(), game.getRemovedTokens(), game.getBoard().values())
+                .flatMap(Collection::stream)
+                .filter(t -> t.canMove())
+                .collect(Collectors.toList());
+    }
+
+    public List<Token> getTokens(String gameId) throws IllegalArgumentException {
+        return getAllTokens(gameDao.getDataGames().get(gameId));
+    }
+
+    public void move(String gameId, String tokenId, int x, int y) throws InvalidPositionException {
+        Token token = getTokenWithName(gameDao.getDataGames().get(gameId), tokenId);
         token.moveTo(new CellPosition(x, y));
     }
 
     @Override
     public List<Game> currentStatus() {
-        return dataGames.values().stream()
+        return gameDao.getDataGames().values().stream()
                 .filter(game -> game.getStatus() == GameStatus.ONGOING)
                 .collect(Collectors.toList());
     }
 
     public Collection<CellPosition> possibilityMoves(String gameId, String tokenName, int x, int y){
-        Token token = getTokenWithName(dataGames.get(gameId), tokenName);
+        Token token = getTokenWithName(gameDao.getDataGames().get(gameId), tokenName);
 
         return token.getAllowedMoves();
     }

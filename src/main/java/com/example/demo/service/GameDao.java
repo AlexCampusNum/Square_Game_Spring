@@ -9,14 +9,8 @@ import java.util.stream.Stream;
 
 public interface GameDao {
 
-    @NotNull Stream<Game> findAll();
-
-    //ok
     Optional<Game> findById(@NotNull String gameId);
 
-    @NotNull Game upsert(@NotNull Game game);
-
-    //ok
     void delete(@NotNull String gameId);
 
     Map<String, Game> getDataGames();
