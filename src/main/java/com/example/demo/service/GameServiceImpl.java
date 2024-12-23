@@ -34,8 +34,7 @@ public class GameServiceImpl implements GameService {
         Game game = plugin.getGameFactory().createGame(plugin.getDefaultPlayerCount(), plugin.getDefaultBoardSize());
         UUID gameId = game.getId();
         String id = gameId.toString();
-//        dataGames.put(id, game);
-        gameDao.getDataGames().put(id, game);
+        gameDao.save(id, game);
         return game;
     }
 

@@ -15,4 +15,5 @@ public interface GameDao {
 
     Map<String, Game> getDataGames();
 
+    void save(String id, Game game);
 }

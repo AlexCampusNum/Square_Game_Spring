@@ -26,4 +26,9 @@ public class InMemoryGameDao implements GameDao {
         dataGames.remove(gameId);
     }
 
+    @Override
+    public void save(String id, Game game) {
+        dataGames.put(id, game);
+    }
+
 }

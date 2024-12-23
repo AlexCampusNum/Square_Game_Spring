@@ -30,40 +30,40 @@ public class GameController {
         return gameService.createGame(params.typeGame(), params.playerCount(), params.boardSize());
     }
 
-//    //Ressortir toutes les parties par une liste de leur ID de GameFactory
-//    @GetMapping("/AllGames")
-//    public Stream<Game> allGames() {
-//        return gameService.getGameIdentifiers();
-//    }
+    //Ressortir toutes les parties par une liste de leur ID de GameFactory not ok, a corriger
+    @GetMapping("/AllGames")
+    public Stream<Game> allGames() {
+        return gameService.getGameIdentifiers();
+    }
 
-    //Afficher une partie par son Id
+    //Afficher une partie par son Id ok
     @GetMapping("/games/{gameId}")
     public Object getGame(@PathVariable String gameId) {
         return gameService.getGame(gameId);
     }
 
-    //Supprimer une partie
+    //Supprimer une partie ok
     @DeleteMapping("/delete/{gameId}")
     public void deleteGame(@PathVariable String gameId) {
         gameService.deleteGame(gameId);
     }
 
-    //Afficher toutes les parties
+    //Afficher toutes les parties ok
     @GetMapping("/games")
     public List<Game> getGames() {
         return gameService.displayGame();
     }
 
-    //Retourner tous les tokens
-//    @GetMapping("/games/{gameId}/tokens")
-//    public List<Token> getTokens(@PathVariable String gameId) {
-//        try {
-//            return gameService.getTokens(gameId);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
+    //Retourner tous les tokens ok
+    @GetMapping("/games/{gameId}/tokens")
+    public List<Token> getTokens(@PathVariable String gameId) {
+        try {
+            return gameService.getTokens(gameId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     //Jouer un coup
     @PutMapping("/games/{gameId}/tokens/{tokenId}/positions")
@@ -82,7 +82,7 @@ public class GameController {
     }
 
     //Connaître la liste des coups possibles
-    @GetMapping("/games/{gameId}/token/{tokenName}/possibility")
+    @GetMapping("/games/{gameId}/token/{tokenName}/possibilities")
     public Collection<CellPosition> possibilityMoves(@PathVariable String gameId, @PathVariable String tokenName, @RequestBody GameMoveParam param) {
         return gameService.possibilityMoves(gameId, tokenName, param.x(), param.y());
     }
