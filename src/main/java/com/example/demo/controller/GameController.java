@@ -1,13 +1,12 @@
 package com.example.demo.controller;
 
-import com.example.demo.service.GameMoveParam;
+import com.example.demo.dto.GameMoveParam;
 import com.example.demo.service.GameService;
-import com.example.demo.service.GameCreationParams;
+import com.example.demo.dto.GameCreationParams;
 import fr.le_campus_numerique.square_games.engine.CellPosition;
 import fr.le_campus_numerique.square_games.engine.Game;
 import fr.le_campus_numerique.square_games.engine.InvalidPositionException;
 import fr.le_campus_numerique.square_games.engine.Token;
-import fr.le_campus_numerique.square_games.engine.tictactoe.TicTacToeGameFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
