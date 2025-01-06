@@ -1,25 +1,23 @@
 package com.example.demo.entity;
 
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
 
+@Entity
+@Table(name = "user")
 public class User {
-    private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private String email;
-
-    public User(int id, String name, String email) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-    }
-
-    @Override
-    public String toString() {
-        return "User{id=" + id + ", name='" + name + "', email='" + email + "'}";
-    }
 }
