@@ -1,13 +1,12 @@
 package com.example.demo.controller;
 
-import com.example.demo.entity.User;
+import com.example.demo.entity.GameUser;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -19,12 +18,12 @@ public class UserController {
     @GetMapping
     public Map<String, Object> getAllUsers() {
     List<Map<String, Object>> users = userService.getAllUsers().stream()
-            .map(user -> Map.of(
+            .map(gameUser -> Map.of(
                     "type", "users",
-                    "id", user.getId().toString(),
+                    "id", gameUser.getId().toString(),
                     "attributes", Map.of(
-                            "name", user.getName(),
-                            "email", user.getEmail()
+                            "name", gameUser.getName(),
+                            "email", gameUser.getEmail()
                     )
             ))
             .toList();
@@ -33,14 +32,14 @@ public class UserController {
 
     @GetMapping("/{id}")
     public Map<String, Object> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
+        GameUser gameUser = userService.getUserById(id);
         return Map.of(
                 "data", Map.of(
                         "type", "users",
-                        "id", user.getId().toString(),
+                        "id", gameUser.getId().toString(),
                         "attributes", Map.of(
-                                "name", user.getName(),
-                                "email", user.getEmail()
+                                "name", gameUser.getName(),
+                                "email", gameUser.getEmail()
                         )
                 )
         );
@@ -50,26 +49,44 @@ public class UserController {
     public Map<String, Object> createUser(@RequestBody Map<String, Object> request) {
         Map<String, Object> data = (Map<String, Object>) request.get("data");
         Map<String, Object> attributes = (Map<String, Object>) data.get("attributes");
-        User user = new User();
-        user.setName((String) attributes.get("name"));
-        user.setEmail((String) attributes.get("email"));
-        User savedUser = userService.saveUser(user);
+        GameUser gameUser = new GameUser();
+        gameUser.setName((String) attributes.get("name"));
+        gameUser.setEmail((String) attributes.get("email"));
+        GameUser savedGameUser = userService.saveUser(gameUser);
         return Map.of(
                 "data", Map.of(
                         "type", "users",
-                        "id", savedUser.getId().toString(),
+                        "id", savedGameUser.getId().toString(),
                         "attributes", Map.of(
-                                "name", savedUser.getName(),
-                                "email", savedUser.getEmail()
+                                "name", savedGameUser.getName(),
+                                "email", savedGameUser.getEmail()
                         )
                 )
         );
     }
 
     @PutMapping("/{id}")
-    public void updateUser(@PathVariable Long id, @RequestBody User user) {
-        user.setId(id);
-        userService.saveUser(user);
+    public Map<String, Object> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+        Map<String, Object> data = (Map<String, Object>) request.get("data");
+        Map<String, Object> attributes = (Map<String, Object>) data.get("attributes");
+
+        GameUser existingGameUser = userService.getUserById(id);
+
+        existingGameUser.setName((String) attributes.get("name"));
+        existingGameUser.setEmail((String) attributes.get("email"));
+
+        GameUser updatedGameUser = userService.saveUser(existingGameUser);
+
+        return Map.of(
+                "data", Map.of(
+                        "type", "users",
+                        "id", updatedGameUser.getId().toString(),
+                        "attributes", Map.of(
+                                "name", updatedGameUser.getName(),
+                                "email", updatedGameUser.getEmail()
+                        )
+                )
+        );
     }
 
     @DeleteMapping("/{id}")
