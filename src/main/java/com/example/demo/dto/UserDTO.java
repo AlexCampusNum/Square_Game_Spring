@@ -1,3 +1,7 @@
 package com.example.demo.dto;
 
-public record UserDTO(Long id, String name, double price) {}
+public record UserDTO(
+        Long id,
+        String name,
+        String email
+) {}

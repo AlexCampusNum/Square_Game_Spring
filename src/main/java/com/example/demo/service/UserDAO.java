@@ -1,13 +1,13 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.GameUser;
+import com.example.demo.entity.User;
 
 import java.util.List;
 
 public interface UserDAO {
-    public List<GameUser> getAllUsers();
-    public GameUser getUserById(int id);
-    public void addUser(GameUser gameUser);
-    public void updateUser(GameUser gameUser);
+    public List<User> getAllUsers();
+    public User getUserById(int id);
+    public void addUser(User user);
+    public void updateUser(User user);
     public void deleteUser(int id);
 }

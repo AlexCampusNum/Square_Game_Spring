@@ -1,12 +1,15 @@
 package com.example.demo.controller;
 
-import com.example.demo.entity.GameUser;
+import com.example.demo.dto.UserDTO;
+import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -17,82 +20,84 @@ public class UserController {
 
     @GetMapping
     public Map<String, Object> getAllUsers() {
-    List<Map<String, Object>> users = userService.getAllUsers().stream()
-            .map(gameUser -> Map.of(
-                    "type", "users",
-                    "id", gameUser.getId().toString(),
-                    "attributes", Map.of(
-                            "name", gameUser.getName(),
-                            "email", gameUser.getEmail()
-                    )
-            ))
-            .toList();
-        return Map.of("data", users);
+        List<UserDTO> users = userService.getAllUsers().stream()
+                .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail()))
+                .collect(Collectors.toList());
+
+        return createResponse("users", users);
     }
 
     @GetMapping("/{id}")
     public Map<String, Object> getUserById(@PathVariable Long id) {
-        GameUser gameUser = userService.getUserById(id);
-        return Map.of(
-                "data", Map.of(
-                        "type", "users",
-                        "id", gameUser.getId().toString(),
-                        "attributes", Map.of(
-                                "name", gameUser.getName(),
-                                "email", gameUser.getEmail()
-                        )
-                )
-        );
+        User user = userService.getUserById(id);
+        UserDTO userDTO = new UserDTO(user.getId(), user.getName(), user.getEmail());
+        return createSingleResponse("users", userDTO);
     }
 
     @PostMapping
     public Map<String, Object> createUser(@RequestBody Map<String, Object> request) {
-        Map<String, Object> data = (Map<String, Object>) request.get("data");
-        Map<String, Object> attributes = (Map<String, Object>) data.get("attributes");
-        GameUser gameUser = new GameUser();
-        gameUser.setName((String) attributes.get("name"));
-        gameUser.setEmail((String) attributes.get("email"));
-        GameUser savedGameUser = userService.saveUser(gameUser);
-        return Map.of(
-                "data", Map.of(
-                        "type", "users",
-                        "id", savedGameUser.getId().toString(),
-                        "attributes", Map.of(
-                                "name", savedGameUser.getName(),
-                                "email", savedGameUser.getEmail()
-                        )
-                )
-        );
+        String name = (String) request.get("name");
+        String email = (String) request.get("email");
+
+        User user = new User();
+        user.setName(name);
+        user.setEmail(email);
+
+        User savedUser = userService.saveUser(user);
+        UserDTO userDTO = new UserDTO(savedUser.getId(), savedUser.getName(), savedUser.getEmail());
+        return createSingleResponse("users", userDTO);
     }
 
     @PutMapping("/{id}")
     public Map<String, Object> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> request) {
-        Map<String, Object> data = (Map<String, Object>) request.get("data");
-        Map<String, Object> attributes = (Map<String, Object>) data.get("attributes");
+        User user = userService.getUserById(id);
 
-        GameUser existingGameUser = userService.getUserById(id);
+        if (request.containsKey("name")) {
+            user.setName((String) request.get("name"));
+        }
+        if (request.containsKey("email")) {
+            user.setEmail((String) request.get("email"));
+        }
 
-        existingGameUser.setName((String) attributes.get("name"));
-        existingGameUser.setEmail((String) attributes.get("email"));
-
-        GameUser updatedGameUser = userService.saveUser(existingGameUser);
-
-        return Map.of(
-                "data", Map.of(
-                        "type", "users",
-                        "id", updatedGameUser.getId().toString(),
-                        "attributes", Map.of(
-                                "name", updatedGameUser.getName(),
-                                "email", updatedGameUser.getEmail()
-                        )
-                )
-        );
+        User updatedUser = userService.saveUser(user);
+        UserDTO userDTO = new UserDTO(updatedUser.getId(), updatedUser.getName(), updatedUser.getEmail());
+        return createSingleResponse("users", userDTO);
     }
 
     @DeleteMapping("/{id}")
     public Map<String, Object> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return Map.of("meta", Map.of("message", "Utilisateur supprimé avec succès"));
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "User deleted successfully");
+        return response;
     }
 
+    private Map<String, Object> createResponse(String type, List<UserDTO> data) {
+        Map<String, Object> response = new HashMap<>();
+        List<Map<String, Object>> formattedData = data.stream()
+                .map(user -> Map.of(
+                        "type", type,
+                        "id", user.id().toString(),
+                        "attributes", Map.of(
+                                "name", user.name(),
+                                "email", user.email()
+                        )
+                ))
+                .collect(Collectors.toList());
+        response.put("data", formattedData);
+        return response;
+    }
+
+    private Map<String, Object> createSingleResponse(String type, UserDTO userDTO) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", Map.of(
+                "type", type,
+                "id", userDTO.id().toString(),
+                "attributes", Map.of(
+                        "name", userDTO.name(),
+                        "email", userDTO.email()
+                )
+        ));
+        return response;
+    }
 }

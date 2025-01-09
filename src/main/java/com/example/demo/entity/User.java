@@ -10,7 +10,7 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "game_user")
-public class GameUser {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
