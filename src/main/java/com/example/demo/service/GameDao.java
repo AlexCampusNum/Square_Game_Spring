@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface GameDao {
+public interface GameDao{
 
     Optional<Game> findById(@NotNull String gameId);
 
