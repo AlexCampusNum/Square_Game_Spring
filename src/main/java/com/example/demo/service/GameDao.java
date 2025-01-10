@@ -2,10 +2,10 @@ package com.example.demo.service;
 
 import fr.le_campus_numerique.square_games.engine.Game;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.stereotype.Repository;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface GameDao{
 
@@ -15,5 +15,5 @@ public interface GameDao{
 
     Map<String, Game> getDataGames();
 
-    void save(String id, Game game);
+    void save(Game game);
 }

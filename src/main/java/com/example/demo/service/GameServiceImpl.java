@@ -15,10 +15,11 @@ import static org.springframework.context.i18n.LocaleContextHolder.getLocale;
 public class GameServiceImpl implements GameService {
 
     @Autowired
-    List<GamePlugin> plugins;
+    GameDao gameDao;
 
     @Autowired
-    GameDao gameDao;
+    List<GamePlugin> plugins;
+
 
     @Override
     public Game createGame(String typeGame, int playerCount, int boardSize) throws IllegalArgumentException {
@@ -32,9 +33,7 @@ public class GameServiceImpl implements GameService {
         }
 
         Game game = plugin.getGameFactory().createGame(plugin.getDefaultPlayerCount(), plugin.getDefaultBoardSize());
-        UUID gameId = game.getId();
-        String id = gameId.toString();
-        gameDao.save(id, game);
+        gameDao.save(game);
         return game;
     }
 

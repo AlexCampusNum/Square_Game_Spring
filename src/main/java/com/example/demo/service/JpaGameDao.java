@@ -10,25 +10,80 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
+import java.util.stream.Stream;
 
 
 @Service
-public class JpaGameDao implements GameDao{
+public class JpaGameDao implements GameDao {
 
     @Autowired
     GameRepository gameRepository;
+
+    @Autowired
     List<GamePlugin> plugins;
+
 
     @Override
     public Optional<Game> findById(String gameId) {
+        Optional<GameEntity> result = gameRepository.findById(gameId);
 
-        return Optional.empty();
+        UUID playerCount = null;
+        String factoryId = result.map(GameEntity::getFactoryId).orElse(null);
+        if (factoryId != null) {
+            playerCount = UUID.fromString(factoryId);
+        }
+
+        var boardSize = result.map(GameEntity::getBoardSize).orElse(0);
+        var playerIdsOptional = result.map(GameEntity::getPlayerIds);
+        List<UUID> players = playerIdsOptional
+                .map(ids -> Arrays.stream(ids.split(","))
+                        .map(UUID::fromString)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
+
+        Optional<List<GameTokenEntity>> tokens = result.map(GameEntity::getTokens);
+
+        Collection<TokenPosition<UUID>> removedTokens = new ArrayList<>();
+        Collection<TokenPosition<UUID>> borderTokens = new ArrayList<>();
+
+        tokens.ifPresent(tokenList -> {
+            var removedTokensEntity = tokenList.stream()
+                    .filter(GameTokenEntity::isRemoved)
+                    .toList();
+
+            var borderTokensEntity = tokenList.stream()
+                    .filter(b-> !b.isRemoved())
+                    .toList();
+
+            removedTokensEntity.forEach(gameTokenEntity -> removedTokens.add(mapToken(gameTokenEntity)));
+
+            borderTokensEntity.forEach(gameTokenEntity -> borderTokens.add(mapToken(gameTokenEntity)));
+        });
+
+        GameFactory factory = getGameFactory(factoryId);
+
+
+        Game game = null;
+        try {
+            game = factory.createGameWithIds(playerCount, boardSize, players, removedTokens, borderTokens);
+        } catch (InconsistentGameDefinitionException e) {
+            System.err.println("Erreur : " + e.getMessage());
+        }
+
+        return Optional.ofNullable(game);
+    }
+
+    private GameFactory getGameFactory(String factoryId) {
+        GameFactory factory = plugins.stream()
+                .filter(p -> p.getDefaultTypeGame().equals(factoryId)).map(GamePlugin::getGameFactory)
+                .findFirst()
+                .orElse(null);
+        return factory;
     }
 
     @Override
     public void delete(String gameId) {
-
+        gameRepository.deleteById(gameId);
     }
 
     public Map<String, Game> getDataGames(){
@@ -39,52 +94,42 @@ public class JpaGameDao implements GameDao{
         for(GameEntity gameEntity : result){
             String factoryId = gameEntity.getFactoryId();
 
-            GameFactory gameFactory = null;
-            String gameFactoryStringId = gameFactory.getGameFactoryId();
-            UUID gameFactoryUUIDId = gameFactoryStringId != null ? UUID.fromString(gameFactoryStringId) : null;
+            GameFactory factory = getGameFactory(factoryId);
 
-
-            GamePlugin plugin = plugins.stream()
-                    .filter(p -> p.getDefaultTypeGame().equals(factoryId))
-                    .findFirst()
-                    .orElse(null);
-
-            if (plugin == null) {
+            if (factory == null) {
                 throw new IllegalArgumentException("No plugin found for the game type: " + factoryId);
             }
 
             int boardSize = gameEntity.getBoardSize();
 
-            String player = gameEntity.getPlayerIds();
-            List<UUID> players = jpp(player);
+            String[] player = gameEntity.getPlayerIds().split(",");
+            var players = Stream.of(player).map(UUID::fromString).toList();
 
             List<GameTokenEntity> tokens = gameEntity.getTokens();
-            var removedTokensEntity = tokens.stream().filter(GameTokenEntity::isRemoved).toList();//2 facon d'écrire la même chose, par contre l'un est le contriare de l'autre !
-            var borderTokensEntity = tokens.stream().filter(t -> !t.isRemoved()).toList();//2 facon d'écrire la même chose, par contre l'un est le contriare de l'autre !
+            var removedTokensEntity = tokens.stream().filter(GameTokenEntity::isRemoved).toList();//2 facon d'écrire la même chose, par contre l'un est le contraire de l'autre !
+            var borderTokensEntity = tokens.stream().filter(t -> !t.isRemoved()).toList();//2 facon d'écrire la même chose, par contre l'un est le contraire de l'autre !
             Collection<TokenPosition<UUID>> removedTokens = new ArrayList<>();
             removedTokensEntity.forEach(gameTokenEntity -> removedTokens.add(mapToken(gameTokenEntity)));
             Collection<TokenPosition<UUID>> borderTokens = new ArrayList<>();
             borderTokensEntity.forEach(gameTokenEntity -> borderTokens.add(mapToken(gameTokenEntity)));
 
 
-            Game game = gameFactory.createGameWithIds(gameFactoryUUIDId, boardSize, players, removedTokens, borderTokens);
-            UUID gameId = game.getId();
-            String id = gameId.toString();
-            gamesMap.put(id, game);
+            try {
+                Game game = factory.createGameWithIds(UUID.fromString(gameEntity.getId()), boardSize, players, removedTokens, borderTokens);
+                UUID gameId = game.getId();
+                String id = gameId.toString();
+                gamesMap.put(id, game);
+            } catch (InconsistentGameDefinitionException e) {
+                System.err.println("Failed to create game: " + e.getMessage());
+            }
 
         }
 
         return gamesMap;
     }
 
-    private List<UUID> jpp (String player){
-        List<UUID> players = new ArrayList<>();
-        UUID uuid = UUID.fromString(player);
-        players.add(uuid);
-    }
-
     @Override
-    public void save(String id, Game game) {
+    public void save(Game game) {
         gameRepository.save(map(game));
     }
 
@@ -95,7 +140,7 @@ public class JpaGameDao implements GameDao{
         gameEntity.setBoardSize(game.getBoardSize());
         gameEntity.setId(game.getId().toString());
 
-        List<GameTokenEntity> tokens = new ArrayList();
+        List<GameTokenEntity> tokens = new ArrayList<>();
         game.getRemovedTokens().forEach(token -> tokens.add(mapToken(token)));
         game.getBoard().values().stream().map(JpaGameDao::mapToken).forEach(tokens::add);
 
@@ -118,14 +163,12 @@ public class JpaGameDao implements GameDao{
         gameTokenEntity.setX(token.getPosition().x());
         gameTokenEntity.setY(token.getPosition().y());
 
-        return null;
+        return gameTokenEntity;
     }
 
     private static TokenPosition<UUID> mapToken(GameTokenEntity gameTokenEntity) {
 
-        TokenPosition<UUID> tokenPosition = new TokenPosition<>(UUID.fromString(gameTokenEntity.getOwnerId()), gameTokenEntity.getName(), gameTokenEntity.getX(), gameTokenEntity.getY());
-
-        return tokenPosition;
+        return new TokenPosition<>(UUID.fromString(gameTokenEntity.getOwnerId()), gameTokenEntity.getName(), gameTokenEntity.getX(), gameTokenEntity.getY());
     }
 
 
